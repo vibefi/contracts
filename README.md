@@ -148,6 +148,23 @@ $ FOUNDRY_PROFILE=ci forge script script/DeployVibeFi.s.sol:DeployVibeFi \
   --broadcast
 ```
 
+## Local Devnet
+
+Spin up a local Anvil devnet with predefined keys, deploy contracts, and leave the chain running:
+
+```shell
+$ ./script/local-devnet.sh
+```
+
+Defaults:
+
+- Accounts: developer, two voters, two security council members (see script output).
+- `SECURITY_COUNCIL` is set to the first council address.
+- Governance params are configurable via env vars (see `script/local-devnet.sh`).
+- A machine-readable JSON file is written to `.devnet/devnet.json` (override with `OUTPUT_JSON`).
+
+The devnet deploys using `script/LocalDevnet.s.sol`, which also distributes tokens and self-delegates.
+
 ## Developer Notes
 
 - The contracts assume mainnet-style governance flows (Timelock + Governor).
