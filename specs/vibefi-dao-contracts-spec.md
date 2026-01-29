@@ -14,6 +14,7 @@ OpenZeppelin 5.0 governance components.
 - Security Council with maximal ability to veto proposals and pause dapps.
 - Proposal eligibility requires a minimum delegation or stake; voting has no minimum.
 - Proposal bonding rules are pluggable and upgradable by governance.
+- Minimum proposal delegation target is 1% of total supply.
 
 ## Non-Goals (for now)
 
@@ -115,7 +116,7 @@ contract via governance.
 
 ## Security Council
 
-The Security Council is a designated role (likely a multisig address).
+The Security Council is a designated role (a multisig address).
 Powers are maximal:
 
 - Veto proposals by calling `cancel` in Governor.
@@ -148,6 +149,7 @@ Upgrades publish a new version and may optionally deprecate older ones.
 - CID stored as `bytes` on-chain (CIDv1 recommended).
 - The protocol does not store the name, version, or description on-chain, but
   emits them via `DappMetadata` logs.
+  - Pausing/unpausing a specific dapp/version emits events and updates status.
 
 ## Open Questions / Parameters to finalize
 
