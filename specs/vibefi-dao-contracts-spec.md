@@ -157,3 +157,10 @@ Upgrades publish a new version and may optionally deprecate older ones.
 - Security Council unpause permissions.
 - Exact proposal requirement interface shape.
 - Deprecation rules for older versions (automatic vs explicit).
+
+## Deployment Notes
+
+- `VfiGovernor` is large; deployments must use an optimizer + `via_ir` profile to
+  stay under EIP-170. The current `profile.ci` is the recommended deployment profile.
+- Security Council rotation requires updating AccessControl roles on `DappRegistry`
+  and `ConstraintsRegistry` in addition to `VfiGovernor`.

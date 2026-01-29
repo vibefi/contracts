@@ -15,10 +15,22 @@ https://book.getfoundry.sh/
 
 ## Usage
 
+### Profiles
+
+`VfiGovernor` exceeds the EIP-170 size limit unless the optimizer + `via_ir` are enabled.
+Use `FOUNDRY_PROFILE=ci` (or a dedicated deploy profile with the same settings) for
+deployment builds and size checks.
+
 ### Build
 
 ```shell
 $ forge build
+```
+
+Deployment build (recommended for CI and releases):
+
+```shell
+$ FOUNDRY_PROFILE=ci forge build --sizes
 ```
 
 ### Test

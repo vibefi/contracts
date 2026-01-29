@@ -69,9 +69,9 @@ contract GovernanceIntegrationTest is Test {
         constraintsRegistry = dep.constraintsRegistry;
         requirements = dep.requirements;
 
-        token.transfer(alice, 600_000e18);
-        token.transfer(bob, 300_000e18);
-        token.transfer(carol, 100_000e18);
+        assertTrue(token.transfer(alice, 600_000e18));
+        assertTrue(token.transfer(bob, 300_000e18));
+        assertTrue(token.transfer(carol, 100_000e18));
 
         vm.prank(alice);
         token.delegate(alice);
