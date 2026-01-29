@@ -6,12 +6,10 @@ import {ERC20Votes} from "openzeppelin-contracts/token/ERC20/extensions/ERC20Vot
 import {EIP712} from "openzeppelin-contracts/utils/cryptography/EIP712.sol";
 
 contract VfiToken is ERC20Votes {
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        uint256 initialSupply,
-        address initialHolder
-    ) ERC20(name_, symbol_) EIP712(name_, "1") {
+    constructor(string memory name_, string memory symbol_, uint256 initialSupply, address initialHolder)
+        ERC20(name_, symbol_)
+        EIP712(name_, "1")
+    {
         if (initialHolder != address(0) && initialSupply > 0) {
             _mint(initialHolder, initialSupply);
         }

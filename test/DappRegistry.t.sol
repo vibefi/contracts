@@ -17,12 +17,7 @@ contract DappRegistryTest is Test {
     function testPublishAndUpgrade() public {
         bytes memory cidV1 = hex"01701220"; // placeholder bytes for testing
         vm.prank(governance);
-        (uint256 dappId, uint256 versionId) = registry.publishDapp(
-            cidV1,
-            "Uniswap",
-            "1.0.0",
-            "Swap UI"
-        );
+        (uint256 dappId, uint256 versionId) = registry.publishDapp(cidV1, "Uniswap", "1.0.0", "Swap UI");
 
         assertEq(dappId, 1);
         assertEq(versionId, 1);
@@ -35,12 +30,7 @@ contract DappRegistryTest is Test {
     function testSecurityCouncilPauseUnpause() public {
         bytes memory cidV1 = hex"01701220";
         vm.prank(governance);
-        (uint256 dappId, uint256 versionId) = registry.publishDapp(
-            cidV1,
-            "Vibe",
-            "1.0.0",
-            "Demo"
-        );
+        (uint256 dappId, uint256 versionId) = registry.publishDapp(cidV1, "Vibe", "1.0.0", "Demo");
 
         vm.prank(securityCouncil);
         registry.pauseDappVersion(dappId, versionId, "incident");

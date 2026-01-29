@@ -12,11 +12,7 @@ contract MinimumDelegationRequirement is IProposalRequirements {
         minBps = minBps_;
     }
 
-    function isEligible(
-        address,
-        uint256 proposerVotes,
-        uint256 totalSupply
-    ) external view override returns (bool) {
+    function isEligible(address, uint256 proposerVotes, uint256 totalSupply) external view override returns (bool) {
         if (totalSupply == 0) {
             return false;
         }

@@ -35,11 +35,7 @@ contract DappRegistry is AccessControl {
         address proposer
     );
     event DappMetadata(
-        uint256 indexed dappId,
-        uint256 indexed versionId,
-        string name,
-        string version,
-        string description
+        uint256 indexed dappId, uint256 indexed versionId, string name, string version, string description
     );
     event DappPaused(uint256 indexed dappId, uint256 indexed versionId, address pausedBy, string reason);
     event DappUnpaused(uint256 indexed dappId, uint256 indexed versionId, address unpausedBy, string reason);
@@ -71,10 +67,11 @@ contract DappRegistry is AccessControl {
         return _latestVersionId[dappId];
     }
 
-    function getDappVersion(
-        uint256 dappId,
-        uint256 versionId
-    ) external view returns (bytes memory rootCid, VersionStatus status, address proposer, uint48 createdAt) {
+    function getDappVersion(uint256 dappId, uint256 versionId)
+        external
+        view
+        returns (bytes memory rootCid, VersionStatus status, address proposer, uint48 createdAt)
+    {
         DappVersion storage version = _versions[dappId][versionId];
         if (version.status == VersionStatus.None) {
             revert DappVersionNotFound(dappId, versionId);
@@ -118,11 +115,10 @@ contract DappRegistry is AccessControl {
         emit DappMetadata(dappId, versionId, name, version, description);
     }
 
-    function pauseDappVersion(
-        uint256 dappId,
-        uint256 versionId,
-        string calldata reason
-    ) external onlyCouncilOrGovernance {
+    function pauseDappVersion(uint256 dappId, uint256 versionId, string calldata reason)
+        external
+        onlyCouncilOrGovernance
+    {
         DappVersion storage version = _requireVersion(dappId, versionId);
         if (version.status != VersionStatus.Published) {
             revert InvalidStatusTransition(version.status, VersionStatus.Paused);
@@ -131,11 +127,10 @@ contract DappRegistry is AccessControl {
         emit DappPaused(dappId, versionId, _msgSender(), reason);
     }
 
-    function unpauseDappVersion(
-        uint256 dappId,
-        uint256 versionId,
-        string calldata reason
-    ) external onlyCouncilOrGovernance {
+    function unpauseDappVersion(uint256 dappId, uint256 versionId, string calldata reason)
+        external
+        onlyCouncilOrGovernance
+    {
         DappVersion storage version = _requireVersion(dappId, versionId);
         if (version.status != VersionStatus.Paused) {
             revert InvalidStatusTransition(version.status, VersionStatus.Published);
@@ -144,11 +139,10 @@ contract DappRegistry is AccessControl {
         emit DappUnpaused(dappId, versionId, _msgSender(), reason);
     }
 
-    function deprecateDappVersion(
-        uint256 dappId,
-        uint256 versionId,
-        string calldata reason
-    ) external onlyCouncilOrGovernance {
+    function deprecateDappVersion(uint256 dappId, uint256 versionId, string calldata reason)
+        external
+        onlyCouncilOrGovernance
+    {
         DappVersion storage version = _requireVersion(dappId, versionId);
         if (version.status == VersionStatus.Deprecated) {
             revert InvalidStatusTransition(version.status, VersionStatus.Deprecated);

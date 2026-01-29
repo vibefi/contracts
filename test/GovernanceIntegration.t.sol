@@ -13,11 +13,7 @@ import {IGovernor} from "openzeppelin-contracts/governance/IGovernor.sol";
 contract GovernanceIntegrationTest is Test {
     event DappPublished(uint256 indexed dappId, uint256 indexed versionId, bytes rootCid, address proposer);
     event DappMetadata(
-        uint256 indexed dappId,
-        uint256 indexed versionId,
-        string name,
-        string version,
-        string description
+        uint256 indexed dappId, uint256 indexed versionId, string name, string version, string description
     );
     event DappPaused(uint256 indexed dappId, uint256 indexed versionId, address pausedBy, string reason);
     event DappUnpaused(uint256 indexed dappId, uint256 indexed versionId, address unpausedBy, string reason);
@@ -70,14 +66,7 @@ contract GovernanceIntegrationTest is Test {
 
         requirements = new MinimumDelegationRequirement(100); // 1% in BPS
         governor = new VfiGovernor(
-            token,
-            timelock,
-            votingDelay,
-            votingPeriod,
-            0,
-            quorumFraction,
-            requirements,
-            securityCouncil
+            token, timelock, votingDelay, votingPeriod, 0, quorumFraction, requirements, securityCouncil
         );
 
         timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
@@ -237,25 +226,18 @@ contract GovernanceIntegrationTest is Test {
         assertEq(uint256(governor.state(proposalId)), uint256(IGovernor.ProposalState.Executed));
     }
 
-    function _publishProposal(
-        bytes memory cid,
-        string memory name,
-        string memory version,
-        string memory summary
-    ) internal view returns (address[] memory, uint256[] memory, bytes[] memory, string memory) {
+    function _publishProposal(bytes memory cid, string memory name, string memory version, string memory summary)
+        internal
+        view
+        returns (address[] memory, uint256[] memory, bytes[] memory, string memory)
+    {
         address[] memory targets = new address[](1);
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
 
         targets[0] = address(registry);
         values[0] = 0;
-        calldatas[0] = abi.encodeWithSelector(
-            registry.publishDapp.selector,
-            cid,
-            name,
-            version,
-            summary
-        );
+        calldatas[0] = abi.encodeWithSelector(registry.publishDapp.selector, cid, name, version, summary);
 
         string memory description = string(abi.encodePacked("Publish ", name, " ", version));
         return (targets, values, calldatas, description);
@@ -274,56 +256,42 @@ contract GovernanceIntegrationTest is Test {
 
         targets[0] = address(registry);
         values[0] = 0;
-        calldatas[0] = abi.encodeWithSelector(
-            registry.upgradeDapp.selector,
-            dappId,
-            cid,
-            name,
-            version,
-            summary
-        );
+        calldatas[0] = abi.encodeWithSelector(registry.upgradeDapp.selector, dappId, cid, name, version, summary);
 
         string memory description = string(abi.encodePacked("Upgrade ", name, " ", version));
         return (targets, values, calldatas, description);
     }
 
-    function _deprecateProposal(
-        uint256 dappId,
-        uint256 versionId,
-        string memory reason
-    ) internal view returns (address[] memory, uint256[] memory, bytes[] memory, string memory) {
+    function _deprecateProposal(uint256 dappId, uint256 versionId, string memory reason)
+        internal
+        view
+        returns (address[] memory, uint256[] memory, bytes[] memory, string memory)
+    {
         address[] memory targets = new address[](1);
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
 
         targets[0] = address(registry);
         values[0] = 0;
-        calldatas[0] = abi.encodeWithSelector(
-            registry.deprecateDappVersion.selector,
-            dappId,
-            versionId,
-            reason
-        );
+        calldatas[0] = abi.encodeWithSelector(registry.deprecateDappVersion.selector, dappId, versionId, reason);
 
-        string memory description = string(abi.encodePacked("Deprecate ", vm.toString(dappId), " ", vm.toString(versionId)));
+        string memory description =
+            string(abi.encodePacked("Deprecate ", vm.toString(dappId), " ", vm.toString(versionId)));
         return (targets, values, calldatas, description);
     }
 
-    function _constraintsProposal(
-        bytes32 constraintsId,
-        bytes memory cid
-    ) internal view returns (address[] memory, uint256[] memory, bytes[] memory, string memory) {
+    function _constraintsProposal(bytes32 constraintsId, bytes memory cid)
+        internal
+        view
+        returns (address[] memory, uint256[] memory, bytes[] memory, string memory)
+    {
         address[] memory targets = new address[](1);
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
 
         targets[0] = address(constraintsRegistry);
         values[0] = 0;
-        calldatas[0] = abi.encodeWithSelector(
-            constraintsRegistry.setConstraints.selector,
-            constraintsId,
-            cid
-        );
+        calldatas[0] = abi.encodeWithSelector(constraintsRegistry.setConstraints.selector, constraintsId, cid);
 
         string memory description = "Update constraints";
         return (targets, values, calldatas, description);
@@ -363,13 +331,9 @@ contract GovernanceIntegrationTest is Test {
         governor.execute(targets, values, calldatas, descriptionHash);
     }
 
-
-    function _publishDirect(
-        bytes memory cid,
-        string memory name,
-        string memory version,
-        string memory summary
-    ) internal {
+    function _publishDirect(bytes memory cid, string memory name, string memory version, string memory summary)
+        internal
+    {
         vm.prank(address(timelock));
         registry.publishDapp(cid, name, version, summary);
     }
