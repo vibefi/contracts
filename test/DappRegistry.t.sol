@@ -3,15 +3,30 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {DappRegistry} from "../src/DappRegistry.sol";
+import {DeployVibeFi} from "../script/DeployVibeFi.s.sol";
 
 contract DappRegistryTest is Test {
-    address private governance = address(0xA11CE);
     address private securityCouncil = address(0xB0B);
 
+    address private governance;
     DappRegistry private registry;
+    DeployVibeFi private deployer;
 
     function setUp() public {
-        registry = new DappRegistry(governance, securityCouncil);
+        deployer = new DeployVibeFi();
+        DeployVibeFi.Params memory params = DeployVibeFi.Params({
+            initialSupply: 1_000_000e18,
+            votingDelay: 1,
+            votingPeriod: 5,
+            quorumFraction: 4,
+            timelockDelay: 1,
+            minProposalBps: 100
+        });
+        DeployVibeFi.Deployment memory dep = deployer.deploy(params, address(this), securityCouncil, false);
+        dep.timelock.grantRole(dep.timelock.PROPOSER_ROLE(), address(dep.governor));
+        dep.timelock.grantRole(dep.timelock.EXECUTOR_ROLE(), address(0));
+        registry = dep.registry;
+        governance = address(dep.timelock);
     }
 
     function testPublishAndUpgrade() public {

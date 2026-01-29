@@ -9,6 +9,7 @@ import {DappRegistry} from "../src/DappRegistry.sol";
 import {ConstraintsRegistry} from "../src/ConstraintsRegistry.sol";
 import {MinimumDelegationRequirement} from "../src/proposal/MinimumDelegationRequirement.sol";
 import {IGovernor} from "openzeppelin-contracts/governance/IGovernor.sol";
+import {DeployVibeFi} from "../script/DeployVibeFi.s.sol";
 
 contract GovernanceIntegrationTest is Test {
     event DappPublished(uint256 indexed dappId, uint256 indexed versionId, bytes rootCid, address proposer);
@@ -34,6 +35,7 @@ contract GovernanceIntegrationTest is Test {
     DappRegistry private registry;
     ConstraintsRegistry private constraintsRegistry;
     MinimumDelegationRequirement private requirements;
+    DeployVibeFi private deployer;
 
     address private alice = address(0xA11CE);
     address private bob = address(0xB0B);
@@ -47,7 +49,25 @@ contract GovernanceIntegrationTest is Test {
 
     function setUp() public {
         uint256 totalSupply = 1_000_000e18;
-        token = new VfiToken("VibeFi", "VFI", totalSupply, address(this));
+        deployer = new DeployVibeFi();
+        DeployVibeFi.Params memory params = DeployVibeFi.Params({
+            initialSupply: totalSupply,
+            votingDelay: votingDelay,
+            votingPeriod: votingPeriod,
+            quorumFraction: quorumFraction,
+            timelockDelay: minDelay,
+            minProposalBps: 100
+        });
+        DeployVibeFi.Deployment memory dep = deployer.deploy(params, address(this), securityCouncil, false);
+        dep.timelock.grantRole(dep.timelock.PROPOSER_ROLE(), address(dep.governor));
+        dep.timelock.grantRole(dep.timelock.EXECUTOR_ROLE(), address(0));
+
+        token = dep.token;
+        governor = dep.governor;
+        timelock = dep.timelock;
+        registry = dep.registry;
+        constraintsRegistry = dep.constraintsRegistry;
+        requirements = dep.requirements;
 
         token.transfer(alice, 600_000e18);
         token.transfer(bob, 300_000e18);
@@ -59,21 +79,6 @@ contract GovernanceIntegrationTest is Test {
         token.delegate(bob);
         vm.prank(carol);
         token.delegate(carol);
-
-        address[] memory proposers = new address[](0);
-        address[] memory executors = new address[](0);
-        timelock = new VfiTimelock(minDelay, proposers, executors, address(this));
-
-        requirements = new MinimumDelegationRequirement(100); // 1% in BPS
-        governor = new VfiGovernor(
-            token, timelock, votingDelay, votingPeriod, 0, quorumFraction, requirements, securityCouncil
-        );
-
-        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
-        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(0));
-
-        registry = new DappRegistry(address(timelock), securityCouncil);
-        constraintsRegistry = new ConstraintsRegistry(address(timelock));
 
         vm.roll(block.number + 1);
     }
