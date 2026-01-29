@@ -59,7 +59,7 @@ contract DeployVibeFi is Script {
         dep.constraintsRegistry = new ConstraintsRegistry(address(dep.timelock));
     }
 
-    function run() external returns (Deployment memory dep) {
+    function run() external virtual returns (Deployment memory dep) {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerKey);
         address securityCouncil = vm.envAddress("SECURITY_COUNCIL");

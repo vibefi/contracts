@@ -5,7 +5,7 @@ import {console2} from "forge-std/console2.sol";
 import {DeployVibeFi} from "./DeployVibeFi.s.sol";
 
 contract LocalDevnet is DeployVibeFi {
-    function run() external returns (Deployment memory dep) {
+    function run() external override returns (Deployment memory dep) {
         uint256 devKey = vm.envUint("DEV_PRIVATE_KEY");
         uint256 voter1Key = vm.envUint("VOTER1_PRIVATE_KEY");
         uint256 voter2Key = vm.envUint("VOTER2_PRIVATE_KEY");
