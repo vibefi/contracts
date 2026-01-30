@@ -10,5 +10,9 @@ out/
 # Docs
 docs/
 
+# Local devnet outputs
+.anvil/
+.devnet/
+
 # Dotenv file
 .env
