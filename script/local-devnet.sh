@@ -6,21 +6,30 @@ if ! command -v anvil >/dev/null 2>&1; then
   exit 1
 fi
 
-RPC_URL="${RPC_URL:-http://127.0.0.1:8545}"
+ANVIL_PORT="${ANVIL_PORT:-8545}"
+RPC_URL="${RPC_URL:-http://127.0.0.1:${ANVIL_PORT}}"
 CHAIN_ID="${CHAIN_ID:-31337}"
 BLOCK_TIME="${BLOCK_TIME:-0}"
 STATE_DIR="${STATE_DIR:-.anvil}"
 STATE_FILE="$STATE_DIR/state.json"
+PERSIST_STATE="${PERSIST_STATE:-0}"
 OUTPUT_JSON="${OUTPUT_JSON:-.devnet/devnet.json}"
 
 mkdir -p "$STATE_DIR"
 mkdir -p "$(dirname "$OUTPUT_JSON")"
 
-export DEV_PRIVATE_KEY="${DEV_PRIVATE_KEY:-0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d}"
-export VOTER1_PRIVATE_KEY="${VOTER1_PRIVATE_KEY:-0x8b3a350cf5c34c9194ca3ab2f7b6c5b7b6b88a83f1f1192e8bff9bb5f1e66e0a}"
-export VOTER2_PRIVATE_KEY="${VOTER2_PRIVATE_KEY:-0x4f3edf983ac636a65a842ce7c78d9aa706d3b113b37a19f4d4f79a5f9f7b8f0d}"
-export SECURITY_COUNCIL_1_PRIVATE_KEY="${SECURITY_COUNCIL_1_PRIVATE_KEY:-0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6ed0f60}"
-export SECURITY_COUNCIL_2_PRIVATE_KEY="${SECURITY_COUNCIL_2_PRIVATE_KEY:-0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a}"
+export MNEMONIC="${MNEMONIC:-test test test test test test test test test test test junk}"
+
+derive_key() {
+  local index=$1
+  cast wallet private-key --mnemonic "$MNEMONIC" --mnemonic-index "$index"
+}
+
+export DEV_PRIVATE_KEY="${DEV_PRIVATE_KEY:-$(derive_key 0)}"
+export VOTER1_PRIVATE_KEY="${VOTER1_PRIVATE_KEY:-$(derive_key 1)}"
+export VOTER2_PRIVATE_KEY="${VOTER2_PRIVATE_KEY:-$(derive_key 2)}"
+export SECURITY_COUNCIL_1_PRIVATE_KEY="${SECURITY_COUNCIL_1_PRIVATE_KEY:-$(derive_key 3)}"
+export SECURITY_COUNCIL_2_PRIVATE_KEY="${SECURITY_COUNCIL_2_PRIVATE_KEY:-$(derive_key 4)}"
 
 export SECURITY_COUNCIL="${SECURITY_COUNCIL:-$(cast wallet address "$SECURITY_COUNCIL_1_PRIVATE_KEY")}"
 
@@ -35,34 +44,53 @@ export COUNCIL_ALLOCATION="${COUNCIL_ALLOCATION:-50000000000000000000000}"
 export OUTPUT_JSON
 
 ANVIL_LOAD_ARGS=()
-if [ -f "$STATE_FILE" ]; then
-  ANVIL_LOAD_ARGS=(--load-state "$STATE_FILE")
+ANVIL_STATE_ARGS=()
+if [ "$PERSIST_STATE" = "1" ]; then
+  ANVIL_STATE_ARGS=(--state "$STATE_FILE")
+  if [ -f "$STATE_FILE" ]; then
+    ANVIL_LOAD_ARGS=(--load-state "$STATE_FILE")
+  fi
 fi
 
-anvil \\
-  --port 8545 \\
-  --chain-id "$CHAIN_ID" \\
-  --block-time "$BLOCK_TIME" \\
-  --silent \\
-  --state "$STATE_FILE" \\
-  "${ANVIL_LOAD_ARGS[@]}" \\
-  --account "$DEV_PRIVATE_KEY,1000000000000000000000" \\
-  --account "$VOTER1_PRIVATE_KEY,1000000000000000000000" \\
-  --account "$VOTER2_PRIVATE_KEY,1000000000000000000000" \\
-  --account "$SECURITY_COUNCIL_1_PRIVATE_KEY,1000000000000000000000" \\
-  --account "$SECURITY_COUNCIL_2_PRIVATE_KEY,1000000000000000000000" \\
+ANVIL_SUBCMD=()
+if anvil --version 2>/dev/null | rg -qi "zksync"; then
+  ANVIL_SUBCMD=(run)
+fi
+
+ANVIL_BLOCK_TIME_ARGS=()
+if [ "$BLOCK_TIME" != "0" ]; then
+  ANVIL_BLOCK_TIME_ARGS=(--block-time "$BLOCK_TIME")
+fi
+
+anvil "${ANVIL_SUBCMD[@]}" \
+  --port "$ANVIL_PORT" \
+  --chain-id "$CHAIN_ID" \
+  "${ANVIL_BLOCK_TIME_ARGS[@]}" \
+  --balance 10000 \
+  --silent \
+  "${ANVIL_STATE_ARGS[@]}" \
+  "${ANVIL_LOAD_ARGS[@]}" \
+  --accounts 5 \
+  --mnemonic "$MNEMONIC" \
   &
 
 ANVIL_PID=$!
 cleanup() { kill "$ANVIL_PID" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
+CHAIN_READY=false
 for _ in {1..30}; do
   if cast chain-id --rpc-url "$RPC_URL" >/dev/null 2>&1; then
+    CHAIN_READY=true
     break
   fi
   sleep 0.2
 done
+
+if [ "$CHAIN_READY" != "true" ]; then
+  echo "Anvil did not start or RPC is not ready at $RPC_URL" >&2
+  exit 1
+fi
 
 check_account_balance() {
   local name=$1
@@ -84,9 +112,9 @@ check_account_balance "council1" "$SECURITY_COUNCIL_1_PRIVATE_KEY"
 check_account_balance "council2" "$SECURITY_COUNCIL_2_PRIVATE_KEY"
 
 echo "Deploying VibeFi contracts to $RPC_URL"
-FOUNDRY_PROFILE=ci forge script script/LocalDevnet.s.sol:LocalDevnet \\
-  --rpc-url "$RPC_URL" \\
-  --private-key "$DEV_PRIVATE_KEY" \\
+FOUNDRY_PROFILE=ci forge script script/LocalDevnet.s.sol:LocalDevnet \
+  --rpc-url "$RPC_URL" \
+  --private-key "$DEV_PRIVATE_KEY" \
   --broadcast
 
 echo "Local devnet ready."
