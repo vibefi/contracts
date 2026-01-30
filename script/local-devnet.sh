@@ -20,7 +20,7 @@ export DEV_PRIVATE_KEY="${DEV_PRIVATE_KEY:-0x59c6995e998f97a5a0044966f0945389dc9
 export VOTER1_PRIVATE_KEY="${VOTER1_PRIVATE_KEY:-0x8b3a350cf5c34c9194ca3ab2f7b6c5b7b6b88a83f1f1192e8bff9bb5f1e66e0a}"
 export VOTER2_PRIVATE_KEY="${VOTER2_PRIVATE_KEY:-0x4f3edf983ac636a65a842ce7c78d9aa706d3b113b37a19f4d4f79a5f9f7b8f0d}"
 export SECURITY_COUNCIL_1_PRIVATE_KEY="${SECURITY_COUNCIL_1_PRIVATE_KEY:-0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6ed0f60}"
-export SECURITY_COUNCIL_2_PRIVATE_KEY="${SECURITY_COUNCIL_2_PRIVATE_KEY:-0x5c8a5a8ec6b2e3d1ebf8a36b1ddc5c0b5e20efb6f6c3b7db6a99a4b43b5c6f2e}"
+export SECURITY_COUNCIL_2_PRIVATE_KEY="${SECURITY_COUNCIL_2_PRIVATE_KEY:-0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a}"
 
 export SECURITY_COUNCIL="${SECURITY_COUNCIL:-$(cast wallet address "$SECURITY_COUNCIL_1_PRIVATE_KEY")}"
 
@@ -63,6 +63,25 @@ for _ in {1..30}; do
   fi
   sleep 0.2
 done
+
+check_account_balance() {
+  local name=$1
+  local key=$2
+  local address
+  address=$(cast wallet address "$key")
+  local balance
+  balance=$(cast balance "$address" --rpc-url "$RPC_URL")
+  if [ "$balance" = "0" ]; then
+    echo "Account $name ($address) has zero balance. Check anvil --account syntax." >&2
+    exit 1
+  fi
+}
+
+check_account_balance "dev" "$DEV_PRIVATE_KEY"
+check_account_balance "voter1" "$VOTER1_PRIVATE_KEY"
+check_account_balance "voter2" "$VOTER2_PRIVATE_KEY"
+check_account_balance "council1" "$SECURITY_COUNCIL_1_PRIVATE_KEY"
+check_account_balance "council2" "$SECURITY_COUNCIL_2_PRIVATE_KEY"
 
 echo "Deploying VibeFi contracts to $RPC_URL"
 FOUNDRY_PROFILE=ci forge script script/LocalDevnet.s.sol:LocalDevnet \\

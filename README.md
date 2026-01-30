@@ -159,7 +159,7 @@ $ ./script/local-devnet.sh
 Defaults:
 
 - Accounts: developer, two voters, two security council members (see script output).
-- `SECURITY_COUNCIL` is set to the first council address.
+- `SECURITY_COUNCIL` is set to the first council address. The second council key is funded but not assigned on-chain.
 - Governance params are configurable via env vars (see `script/local-devnet.sh`).
 - A machine-readable JSON file is written to `.devnet/devnet.json` (override with `OUTPUT_JSON`).
 

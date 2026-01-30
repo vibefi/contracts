@@ -72,14 +72,12 @@ contract LocalDevnet is DeployVibeFi {
             vm.serializeAddress(json, "voter1", voter1);
             vm.serializeAddress(json, "voter2", voter2);
             vm.serializeAddress(json, "securityCouncil1", council1);
-            vm.serializeAddress(json, "securityCouncil2", council2);
 
             vm.serializeString(json, "developerPrivateKey", vm.toString(bytes32(devKey)));
             vm.serializeString(json, "voter1PrivateKey", vm.toString(bytes32(voter1Key)));
             vm.serializeString(json, "voter2PrivateKey", vm.toString(bytes32(voter2Key)));
-            vm.serializeString(json, "securityCouncil1PrivateKey", vm.toString(bytes32(council1Key)));
             string memory jsonOut =
-                vm.serializeString(json, "securityCouncil2PrivateKey", vm.toString(bytes32(council2Key)));
+                vm.serializeString(json, "securityCouncil1PrivateKey", vm.toString(bytes32(council1Key)));
 
             vm.writeJson(jsonOut, outputJson);
         }
@@ -95,6 +93,6 @@ contract LocalDevnet is DeployVibeFi {
         console2.log("Voter1:", voter1);
         console2.log("Voter2:", voter2);
         console2.log("SecurityCouncil1:", council1);
-        console2.log("SecurityCouncil2 (not assigned on-chain):", council2);
+        console2.log("SecurityCouncil2 (funded, not assigned on-chain):", council2);
     }
 }
