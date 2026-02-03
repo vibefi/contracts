@@ -62,6 +62,9 @@ if [ "$BLOCK_TIME" != "0" ]; then
   ANVIL_BLOCK_TIME_ARGS=(--block-time "$BLOCK_TIME")
 fi
 
+# Temporarily disable nounset: bash 3.2 (macOS default) treats empty
+# array [@] expansions as unbound variables under set -u.
+set +u
 anvil "${ANVIL_SUBCMD[@]}" \
   --port "$ANVIL_PORT" \
   --chain-id "$CHAIN_ID" \
@@ -73,6 +76,7 @@ anvil "${ANVIL_SUBCMD[@]}" \
   --accounts 5 \
   --mnemonic "$MNEMONIC" \
   &
+set -u
 
 ANVIL_PID=$!
 cleanup() { kill "$ANVIL_PID" >/dev/null 2>&1 || true; }
