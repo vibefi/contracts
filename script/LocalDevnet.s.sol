@@ -61,6 +61,7 @@ contract LocalDevnet is DeployVibeFi {
         if (bytes(outputJson).length != 0) {
             string memory json = "devnet";
             vm.serializeUint(json, "chainId", block.chainid);
+            vm.serializeUint(json, "deployBlock", block.number);
             vm.serializeAddress(json, "vfiToken", address(dep.token));
             vm.serializeAddress(json, "vfiGovernor", address(dep.governor));
             vm.serializeAddress(json, "vfiTimelock", address(dep.timelock));

@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load .env if present
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+fi
+
 if ! command -v anvil >/dev/null 2>&1; then
   echo "anvil not found on PATH. Install foundry (https://book.getfoundry.sh/) to continue."
   exit 1
@@ -8,7 +15,8 @@ fi
 
 ANVIL_PORT="${ANVIL_PORT:-8545}"
 RPC_URL="${RPC_URL:-http://127.0.0.1:${ANVIL_PORT}}"
-CHAIN_ID="${CHAIN_ID:-31337}"
+FORK_URL="${FORK_URL}"
+CHAIN_ID="${CHAIN_ID:-1}"
 BLOCK_TIME="${BLOCK_TIME:-0}"
 STATE_DIR="${STATE_DIR:-.anvil}"
 STATE_FILE="$STATE_DIR/state.json"
@@ -67,6 +75,7 @@ fi
 set +u
 anvil "${ANVIL_SUBCMD[@]}" \
   --port "$ANVIL_PORT" \
+  --fork-url "$FORK_URL" \
   --chain-id "$CHAIN_ID" \
   "${ANVIL_BLOCK_TIME_ARGS[@]}" \
   --balance 10000 \
