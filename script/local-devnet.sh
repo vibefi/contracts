@@ -22,6 +22,8 @@ STATE_DIR="${STATE_DIR:-.anvil}"
 STATE_FILE="$STATE_DIR/state.json"
 PERSIST_STATE="${PERSIST_STATE:-0}"
 OUTPUT_JSON="${OUTPUT_JSON:-.devnet/devnet.json}"
+FORK_URL="${FORK_URL:-}"
+FORK_BLOCK="${FORK_BLOCK:-}"
 
 mkdir -p "$STATE_DIR"
 mkdir -p "$(dirname "$OUTPUT_JSON")"
@@ -70,14 +72,22 @@ if [ "$BLOCK_TIME" != "0" ]; then
   ANVIL_BLOCK_TIME_ARGS=(--block-time "$BLOCK_TIME")
 fi
 
+ANVIL_FORK_ARGS=()
+if [ -n "$FORK_URL" ]; then
+  ANVIL_FORK_ARGS=(--fork-url "$FORK_URL")
+  if [ -n "$FORK_BLOCK" ]; then
+    ANVIL_FORK_ARGS+=(--fork-block-number "$FORK_BLOCK")
+  fi
+fi
+
 # Temporarily disable nounset: bash 3.2 (macOS default) treats empty
 # array [@] expansions as unbound variables under set -u.
 set +u
 anvil "${ANVIL_SUBCMD[@]}" \
   --port "$ANVIL_PORT" \
-  --fork-url "$FORK_URL" \
   --chain-id "$CHAIN_ID" \
   "${ANVIL_BLOCK_TIME_ARGS[@]}" \
+  "${ANVIL_FORK_ARGS[@]}" \
   --balance 10000 \
   --silent \
   "${ANVIL_STATE_ARGS[@]}" \
