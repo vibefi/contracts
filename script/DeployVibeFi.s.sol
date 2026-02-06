@@ -77,9 +77,4 @@ contract DeployVibeFi is Script {
         dep = deploy(params, deployer, securityCouncil, true);
         vm.stopBroadcast();
     }
-
-    function configureRoles(VfiTimelock timelock, VfiGovernor governor) external {
-        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
-        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(0));
-    }
 }

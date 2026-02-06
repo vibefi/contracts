@@ -1,5 +1,9 @@
 # VibeFi DAO + Dapp Registry Initial Spec
 
+> **Note**: This is the original design spec kept for historical reference.
+> The source of truth for current contract architecture and deployment is
+> [contracts/README.md](../README.md).
+
 Status: Draft
 
 This spec captures the first on-chain architecture for the VibeFi DAO, voting, and
