@@ -14,7 +14,7 @@ if ! command -v anvil >/dev/null 2>&1; then
 fi
 
 ANVIL_PORT="${ANVIL_PORT:-8545}"
-RPC_URL="${RPC_URL:-http://127.0.0.1:${ANVIL_PORT}}"
+export RPC_URL="${RPC_URL:-http://127.0.0.1:${ANVIL_PORT}}"
 CHAIN_ID="${CHAIN_ID:-1}"
 BLOCK_TIME="${BLOCK_TIME:-0}"
 STATE_DIR="${STATE_DIR:-.anvil}"
