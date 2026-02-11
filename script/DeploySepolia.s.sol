@@ -6,7 +6,8 @@ import {DeployVibeFi} from "./DeployVibeFi.s.sol";
 
 contract DeploySepolia is DeployVibeFi {
     function run() external override returns (Deployment memory dep) {
-        uint256 deployerKey = vm.envUint("PRIVATE_KEY_TESTNET");
+        string memory mnemonic = vm.envString("SEPOLIA_MNEMONIC");
+        uint256 deployerKey = vm.deriveKey(mnemonic, 0);
         address deployer = vm.addr(deployerKey);
 
         Params memory params = Params({
@@ -30,7 +31,7 @@ contract DeploySepolia is DeployVibeFi {
             vm.serializeUint(json, "deployBlock", block.number);
             vm.serializeAddress(json, "vfiToken", address(dep.token));
             vm.serializeAddress(json, "vfiGovernor", address(dep.governor));
-            vm.serializeAddress(json, "vfiTimelock", address(dep.timelock));
+        vm.serializeAddress(json, "vfiTimelock", address(dep.timelock));
             vm.serializeAddress(json, "dappRegistry", address(dep.registry));
             vm.serializeAddress(json, "constraintsRegistry", address(dep.constraintsRegistry));
             vm.serializeAddress(json, "proposalRequirements", address(dep.requirements));
