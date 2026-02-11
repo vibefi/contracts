@@ -13,6 +13,7 @@ docs/
 # Local devnet outputs
 .anvil/
 .devnet/
+.sepolia/
 
 # Dotenv file
 .env

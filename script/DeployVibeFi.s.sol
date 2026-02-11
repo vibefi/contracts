@@ -28,6 +28,42 @@ contract DeployVibeFi is Script {
         MinimumDelegationRequirement requirements;
     }
 
+    function writeDeploymentJson(Deployment memory dep, address deployer, address securityCouncil) internal {
+        string memory outputJson = vm.envOr("OUTPUT_JSON", string(""));
+        if (bytes(outputJson).length == 0) {
+            return;
+        }
+
+        string memory json = "deployment";
+        vm.serializeUint(json, "chainId", block.chainid);
+        vm.serializeUint(json, "deployBlock", block.number);
+        vm.serializeAddress(json, "vfiToken", address(dep.token));
+        vm.serializeAddress(json, "vfiGovernor", address(dep.governor));
+        vm.serializeAddress(json, "vfiTimelock", address(dep.timelock));
+        vm.serializeAddress(json, "dappRegistry", address(dep.registry));
+        vm.serializeAddress(json, "constraintsRegistry", address(dep.constraintsRegistry));
+        vm.serializeAddress(json, "proposalRequirements", address(dep.requirements));
+
+        vm.serializeAddress(json, "deployer", deployer);
+        vm.serializeAddress(json, "securityCouncil", securityCouncil);
+
+        // Keep a superset compatible with the CLI devnet JSON loader.
+        vm.serializeAddress(json, "developer", deployer);
+        vm.serializeString(json, "developerPrivateKey", "");
+        vm.serializeAddress(json, "voter1", address(0));
+        vm.serializeString(json, "voter1PrivateKey", "");
+        vm.serializeAddress(json, "voter2", address(0));
+        vm.serializeString(json, "voter2PrivateKey", "");
+        vm.serializeAddress(json, "securityCouncil1", securityCouncil);
+        vm.serializeString(json, "securityCouncil1PrivateKey", "");
+        vm.serializeAddress(json, "securityCouncil2", address(0));
+        vm.serializeString(json, "securityCouncil2PrivateKey", "");
+
+        vm.serializeBool(json, "localNetwork", false);
+        string memory jsonOut = vm.serializeString(json, "rpcUrl", vm.envOr("RPC_URL", string("")));
+        vm.writeJson(jsonOut, outputJson);
+    }
+
     function deploy(Params memory params, address initialHolder, address securityCouncil, bool configureTimelockRoles)
         public
         returns (Deployment memory dep)
@@ -60,8 +96,6 @@ contract DeployVibeFi is Script {
     }
 
     function run() external virtual returns (Deployment memory dep) {
-        uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(deployerKey);
         address securityCouncil = vm.envAddress("SECURITY_COUNCIL");
 
         Params memory params = Params({
@@ -73,8 +107,11 @@ contract DeployVibeFi is Script {
             minProposalBps: vm.envUint("MIN_PROPOSAL_BPS")
         });
 
-        vm.startBroadcast(deployerKey);
+        vm.startBroadcast();
+        address deployer = tx.origin;
         dep = deploy(params, deployer, securityCouncil, true);
         vm.stopBroadcast();
+
+        writeDeploymentJson(dep, deployer, securityCouncil);
     }
 }
