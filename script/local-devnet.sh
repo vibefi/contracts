@@ -21,7 +21,7 @@ STATE_DIR="${STATE_DIR:-.anvil}"
 STATE_FILE="$STATE_DIR/state.json"
 PERSIST_STATE="${PERSIST_STATE:-0}"
 OUTPUT_JSON="${OUTPUT_JSON:-.devnet/devnet.json}"
-FORK_URL="${FORK_URL:-}"
+MAINNET_RPC_URL="${MAINNET_RPC_URL:-}"
 FORK_BLOCK="${FORK_BLOCK:-}"
 
 mkdir -p "$STATE_DIR"
@@ -72,8 +72,8 @@ if [ "$BLOCK_TIME" != "0" ]; then
 fi
 
 ANVIL_FORK_ARGS=()
-if [ -n "$FORK_URL" ]; then
-  ANVIL_FORK_ARGS=(--fork-url "$FORK_URL")
+if [ -n "$MAINNET_RPC_URL" ]; then
+  ANVIL_FORK_ARGS=(--fork-url "$MAINNET_RPC_URL")
   if [ -n "$FORK_BLOCK" ]; then
     ANVIL_FORK_ARGS+=(--fork-block-number "$FORK_BLOCK")
   fi

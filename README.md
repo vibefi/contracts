@@ -148,6 +148,116 @@ $ FOUNDRY_PROFILE=ci forge script script/DeployVibeFi.s.sol:DeployVibeFi \
   --broadcast
 ```
 
+## Sepolia Testnet Deployment
+
+Copy `.env.example` to `.env` and fill in `SEPOLIA_MNEMONIC` and `SEPOLIA_RPC_URL`. Forge reads `.env` automatically, and `foundry.toml` defines a `sepolia` RPC alias.
+
+The deploy script derives the deployer key from `SEPOLIA_MNEMONIC` (index 0) and self-delegates all tokens, so the deployer satisfies both the proposal threshold and quorum on its own.
+
+### Current deployment (2026-02-11)
+
+| Contract | Address |
+|---|---|
+| VfiToken | `0xD11496882E083Ce67653eC655d14487030E548aC` |
+| VfiGovernor | `0x753d33e2E61F249c87e6D33c4e04b39731776297` |
+| VfiTimelock | `0xA1349b43D3f233287762897047980bAb3846E23b` |
+| DappRegistry | `0xFb84B57E757649Dff3870F1381C67c9097D0c67f` |
+| ConstraintsRegistry | `0x6F88C22Aed57a7175E2655AA5f2b5863A0c0a7b7` |
+| MinimumDelegationRequirement | `0x641d8C8823e72af936b78026d3bb514Be3f22383` |
+
+### 1. Deploy contracts
+
+```shell
+source .env
+$ OUTPUT_JSON=.devnet/sepolia.json FOUNDRY_PROFILE=ci forge script \
+    script/DeploySepolia.s.sol:DeploySepolia \
+    --rpc-url sepolia --broadcast --verify -vvv
+```
+
+Contract addresses are written to `.devnet/sepolia.json`.
+
+### 2. Derive the deployer private key
+
+The CLI needs a raw private key. Derive it once:
+
+```shell
+$ export DEPLOYER_PK=$(cast wallet private-key --mnemonic "$SEPOLIA_MNEMONIC")
+```
+
+### 3. Package a dapp
+
+Start IPFS if not running (`docker compose -f docker-compose.ipfs.yml up -d` from the monorepo root), then from `cli/`:
+
+```shell
+$ bun run src/index.ts package \
+    --path ../dapp-examples/uniswap-v2 \
+    --name "Uniswap V2" --dapp-version 0.0.1 \
+    --description "Uniswap V2 example" --json
+```
+
+Note the `rootCid` from the output.
+
+### 4. Propose the dapp
+
+```shell
+$ bun run src/index.ts dapp:propose \
+    --root-cid <rootCid> \
+    --name "Uniswap V2" --dapp-version 0.0.1 \
+    --description "Uniswap V2 example" \
+    --proposal-description "Publish Uniswap V2 v0.0.1" \
+    --rpc $SEPOLIA_RPC_URL --devnet ../contracts/.devnet/sepolia.json \
+    --pk $DEPLOYER_PK --json
+```
+
+### 5. Vote
+
+Wait ~12s for the voting delay (1 block), then find the proposal ID and vote:
+
+```shell
+$ bun run src/index.ts proposals:list \
+    --rpc $SEPOLIA_RPC_URL --devnet ../contracts/.devnet/sepolia.json --json
+$ bun run src/index.ts vote:cast <proposalId> --support for \
+    --rpc $SEPOLIA_RPC_URL --devnet ../contracts/.devnet/sepolia.json \
+    --pk $DEPLOYER_PK --json
+```
+
+### 6. Queue and execute
+
+Wait ~10 min for the voting period (50 blocks), then queue:
+
+```shell
+$ bun run src/index.ts proposals:queue <proposalId> \
+    --rpc $SEPOLIA_RPC_URL --devnet ../contracts/.devnet/sepolia.json \
+    --pk $DEPLOYER_PK --json
+```
+
+Wait 60s for the timelock delay, then execute:
+
+```shell
+$ bun run src/index.ts proposals:execute <proposalId> \
+    --rpc $SEPOLIA_RPC_URL --devnet ../contracts/.devnet/sepolia.json \
+    --pk $DEPLOYER_PK --json
+```
+
+### 7. Verify
+
+```shell
+$ bun run src/index.ts dapp:list \
+    --rpc $SEPOLIA_RPC_URL --devnet ../contracts/.devnet/sepolia.json --json
+```
+
+### 8. Pin IPFS content:
+
+```shell
+curl -X POST "https://api.4everland.dev/pins" \                                                                          ✔ 
+  -H "Authorization: Bearer <4EVERLAND_API_KEY>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "cid": "<root cid>",
+    "name": "<folder-name>"
+  }'
+```
+
 ## Local Devnet
 
 Spin up a local Anvil devnet with predefined keys, deploy contracts, and leave the chain running:
