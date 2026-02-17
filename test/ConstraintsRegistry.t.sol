@@ -44,9 +44,7 @@ contract ConstraintsRegistryTest is Test {
     }
 
     function testSetConstraintsRevertsForUnauthorizedCaller() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(ACCESS_CONTROL_UNAUTHORIZED_SELECTOR, user, registry.GOVERNANCE_ROLE())
-        );
+        vm.expectRevert(abi.encodeWithSelector(ACCESS_CONTROL_UNAUTHORIZED_SELECTOR, user, registry.GOVERNANCE_ROLE()));
         vm.prank(user);
         registry.setConstraints(keccak256("default"), hex"01");
     }

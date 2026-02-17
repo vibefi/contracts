@@ -67,9 +67,7 @@ contract DappRegistryTest is Test {
     }
 
     function testOnlyGovernanceCanPublish() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(ACCESS_CONTROL_UNAUTHORIZED_SELECTOR, eve, registry.GOVERNANCE_ROLE())
-        );
+        vm.expectRevert(abi.encodeWithSelector(ACCESS_CONTROL_UNAUTHORIZED_SELECTOR, eve, registry.GOVERNANCE_ROLE()));
         vm.prank(eve);
         registry.publishDapp(hex"01", "Name", "1.0.0", "Summary");
     }
