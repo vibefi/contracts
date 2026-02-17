@@ -78,6 +78,12 @@ contract VfiTokenSellerTest is Test {
         seller.buy{value: 0}(BUYER, 0);
     }
 
+    function testBuyRevertsOnZeroRecipient() public {
+        vm.prank(BUYER);
+        vm.expectRevert(VfiTokenSeller.ZeroAddress.selector);
+        seller.buy{value: 0.01 ether}(address(0), 0);
+    }
+
     function testBuyRevertsOnTooSmallAmount() public {
         VfiTokenSeller tinyRateSeller = new VfiTokenSeller(IERC20(address(token)), 1, address(this));
         assertTrue(token.transfer(address(tinyRateSeller), 10e18));
@@ -121,9 +127,10 @@ contract VfiTokenSellerTest is Test {
 
     function testWithdrawEthRevertsOnInsufficientBalance() public {
         // Seller has no or insufficient ETH balance to cover this withdrawal.
-        vm.expectRevert(VfiTokenSeller.InsufficientBalance.selector);
+        vm.expectRevert(abi.encodeWithSelector(VfiTokenSeller.InsufficientEthBalance.selector, 1 ether, 0));
         seller.withdrawEth(payable(RECIPIENT), 1 ether);
     }
+
     function testWithdrawUnsoldTokensTransfersTokens() public {
         uint256 ownerBalanceBefore = token.balanceOf(address(this));
         seller.withdrawUnsoldTokens(address(this), 100e18);
@@ -137,15 +144,18 @@ contract VfiTokenSellerTest is Test {
     }
 
     function testWithdrawUnsoldTokensRevertsOnZeroAmount() public {
-        vm.expectRevert(VfiTokenSeller.ZeroAmount.selector);
+        vm.expectRevert(VfiTokenSeller.InvalidAmount.selector);
         seller.withdrawUnsoldTokens(address(this), 0);
     }
 
     function testWithdrawUnsoldTokensRevertsOnInsufficientTokenBalance() public {
         uint256 sellerBalance = token.balanceOf(address(seller));
-        vm.expectRevert(VfiTokenSeller.InsufficientTokenBalance.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(VfiTokenSeller.InsufficientTokenInventory.selector, sellerBalance + 1, sellerBalance)
+        );
         seller.withdrawUnsoldTokens(address(this), sellerBalance + 1);
     }
+
     function testConstructorValidation() public {
         vm.expectRevert(VfiTokenSeller.ZeroAddress.selector);
         new VfiTokenSeller(IERC20(address(0)), TOKENS_PER_ETH, address(this));
