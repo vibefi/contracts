@@ -109,6 +109,21 @@ contract VfiTokenSellerTest is Test {
         assertEq(address(seller).balance, 0.6 ether);
     }
 
+    function testWithdrawEthRevertsOnZeroRecipient() public {
+        vm.expectRevert(VfiTokenSeller.ZeroAddress.selector);
+        seller.withdrawEth(payable(address(0)), 0.1 ether);
+    }
+
+    function testWithdrawEthRevertsOnZeroAmount() public {
+        vm.expectRevert(VfiTokenSeller.InvalidAmount.selector);
+        seller.withdrawEth(payable(RECIPIENT), 0);
+    }
+
+    function testWithdrawEthRevertsOnInsufficientBalance() public {
+        // Seller has no or insufficient ETH balance to cover this withdrawal.
+        vm.expectRevert(VfiTokenSeller.InsufficientBalance.selector);
+        seller.withdrawEth(payable(RECIPIENT), 1 ether);
+    }
     function testWithdrawUnsoldTokensTransfersTokens() public {
         uint256 ownerBalanceBefore = token.balanceOf(address(this));
         seller.withdrawUnsoldTokens(address(this), 100e18);
