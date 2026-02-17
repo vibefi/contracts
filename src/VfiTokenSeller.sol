@@ -30,7 +30,7 @@ contract VfiTokenSeller is Ownable {
     uint256 public tokensPerEth;
 
     constructor(IERC20 token_, uint256 tokensPerEth_, address owner_) Ownable(owner_) {
-        if (address(token_) == address(0) || owner_ == address(0)) revert ZeroAddress();
+        if (address(token_) == address(0)) revert ZeroAddress();
         if (tokensPerEth_ == 0) revert InvalidRate();
 
         token = token_;
