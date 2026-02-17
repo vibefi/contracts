@@ -25,6 +25,9 @@ contract DappRegistryTest is Test {
         DeployVibeFi.Deployment memory dep = deployer.deploy(params, address(this), securityCouncil, false);
         dep.timelock.grantRole(dep.timelock.PROPOSER_ROLE(), address(dep.governor));
         dep.timelock.grantRole(dep.timelock.EXECUTOR_ROLE(), address(0));
+        dep.timelock.grantRole(dep.timelock.CANCELLER_ROLE(), securityCouncil);
+        dep.timelock.revokeRole(dep.timelock.DEFAULT_ADMIN_ROLE(), address(this));
+
         registry = dep.registry;
         governance = address(dep.timelock);
     }

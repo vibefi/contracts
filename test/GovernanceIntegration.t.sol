@@ -18,7 +18,6 @@ contract GovernanceIntegrationTest is Test {
     );
     event DappPaused(uint256 indexed dappId, uint256 indexed versionId, address pausedBy, string reason);
     event DappUnpaused(uint256 indexed dappId, uint256 indexed versionId, address unpausedBy, string reason);
-    event SecurityCouncilVeto(uint256 indexed proposalId, address indexed vetoedBy);
     event DappUpgraded(
         uint256 indexed dappId,
         uint256 indexed fromVersionId,
@@ -61,6 +60,8 @@ contract GovernanceIntegrationTest is Test {
         DeployVibeFi.Deployment memory dep = deployer.deploy(params, address(this), securityCouncil, false);
         dep.timelock.grantRole(dep.timelock.PROPOSER_ROLE(), address(dep.governor));
         dep.timelock.grantRole(dep.timelock.EXECUTOR_ROLE(), address(0));
+        dep.timelock.grantRole(dep.timelock.CANCELLER_ROLE(), securityCouncil);
+        dep.timelock.revokeRole(dep.timelock.DEFAULT_ADMIN_ROLE(), address(this));
 
         token = dep.token;
         governor = dep.governor;
@@ -143,21 +144,26 @@ contract GovernanceIntegrationTest is Test {
         governor.queue(targets, values, calldatas, descriptionHash);
     }
 
-    function testSecurityCouncilVetoCancelsProposal() public {
+    function testSecurityCouncilCancellerRoleCancelsQueuedProposal() public {
         bytes memory cid = hex"01701220";
         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description) =
             _publishProposal(cid, "Evil", "0.0.1", "Malicious UI");
 
-        vm.prank(alice);
-        uint256 proposalId = governor.propose(targets, values, calldatas, description);
+        uint256 proposalId = _proposeAndPass(targets, values, calldatas, description);
 
         bytes32 descriptionHash = keccak256(bytes(description));
+        governor.queue(targets, values, calldatas, descriptionHash);
 
-        vm.expectEmit(true, true, false, true, address(governor));
-        emit SecurityCouncilVeto(proposalId, securityCouncil);
+        bytes32 operationId = timelock.hashOperationBatch(
+            targets,
+            values,
+            calldatas,
+            bytes32(0),
+            bytes20(address(governor)) ^ descriptionHash
+        );
 
         vm.prank(securityCouncil);
-        governor.vetoProposal(targets, values, calldatas, descriptionHash);
+        timelock.cancel(operationId);
 
         assertEq(uint256(governor.state(proposalId)), uint256(IGovernor.ProposalState.Canceled));
     }

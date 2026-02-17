@@ -46,13 +46,18 @@ contract DeployVibeFi is Script {
             params.votingPeriod,
             0,
             params.quorumFraction,
-            dep.requirements,
-            securityCouncil
+            dep.requirements
         );
 
         if (configureTimelockRoles) {
+            // only governance can propose
             dep.timelock.grantRole(dep.timelock.PROPOSER_ROLE(), address(dep.governor));
+            // anyone can execute
             dep.timelock.grantRole(dep.timelock.EXECUTOR_ROLE(), address(0));
+            // security council can cancel
+            dep.timelock.grantRole(dep.timelock.CANCELLER_ROLE(), securityCouncil);
+            // renounce admin role from deployer so that all actions must go through governance
+            dep.timelock.revokeRole(dep.timelock.DEFAULT_ADMIN_ROLE(), initialHolder);
         }
 
         dep.registry = new DappRegistry(address(dep.timelock), securityCouncil);

@@ -23,14 +23,9 @@ contract VfiGovernor is
     GovernorTimelockControl
 {
     IProposalRequirements public proposalRequirements;
-    address public securityCouncil;
 
     event ProposalRequirementsUpdated(address indexed requirements);
-    event SecurityCouncilUpdated(address indexed previousCouncil, address indexed newCouncil);
-    event SecurityCouncilVeto(uint256 indexed proposalId, address indexed vetoedBy);
-
     error ProposalRequirementsNotMet(address proposer);
-    error SecurityCouncilOnly(address caller);
 
     constructor(
         IVotes token,
@@ -39,8 +34,7 @@ contract VfiGovernor is
         uint32 initialVotingPeriod,
         uint256 initialProposalThreshold,
         uint256 quorumFraction,
-        IProposalRequirements requirements,
-        address securityCouncil_
+        IProposalRequirements requirements
     )
         Governor("VibeFi Governor")
         GovernorSettings(initialVotingDelay, initialVotingPeriod, initialProposalThreshold)
@@ -49,33 +43,12 @@ contract VfiGovernor is
         GovernorTimelockControl(timelock)
     {
         proposalRequirements = requirements;
-        securityCouncil = securityCouncil_;
         emit ProposalRequirementsUpdated(address(requirements));
-        emit SecurityCouncilUpdated(address(0), securityCouncil_);
     }
 
     function setProposalRequirements(IProposalRequirements requirements) external onlyGovernance {
         proposalRequirements = requirements;
         emit ProposalRequirementsUpdated(address(requirements));
-    }
-
-    function setSecurityCouncil(address newCouncil) external onlyGovernance {
-        address previous = securityCouncil;
-        securityCouncil = newCouncil;
-        emit SecurityCouncilUpdated(previous, newCouncil);
-    }
-
-    function vetoProposal(
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        bytes32 descriptionHash
-    ) external returns (uint256 proposalId) {
-        if (_msgSender() != securityCouncil) {
-            revert SecurityCouncilOnly(_msgSender());
-        }
-        proposalId = _cancel(targets, values, calldatas, descriptionHash);
-        emit SecurityCouncilVeto(proposalId, _msgSender());
     }
 
     function propose(
