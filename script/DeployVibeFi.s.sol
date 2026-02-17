@@ -40,13 +40,7 @@ contract DeployVibeFi is Script {
 
         dep.requirements = new MinimumDelegationRequirement(params.minProposalBps);
         dep.governor = new VfiGovernor(
-            dep.token,
-            dep.timelock,
-            params.votingDelay,
-            params.votingPeriod,
-            0,
-            params.quorumFraction,
-            dep.requirements
+            dep.token, dep.timelock, params.votingDelay, params.votingPeriod, 0, params.quorumFraction, dep.requirements
         );
 
         if (configureTimelockRoles) {

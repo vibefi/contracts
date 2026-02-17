@@ -155,11 +155,7 @@ contract GovernanceIntegrationTest is Test {
         governor.queue(targets, values, calldatas, descriptionHash);
 
         bytes32 operationId = timelock.hashOperationBatch(
-            targets,
-            values,
-            calldatas,
-            bytes32(0),
-            bytes20(address(governor)) ^ descriptionHash
+            targets, values, calldatas, bytes32(0), bytes20(address(governor)) ^ descriptionHash
         );
 
         vm.prank(securityCouncil);
