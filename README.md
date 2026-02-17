@@ -154,11 +154,12 @@ Copy `.env.example` to `.env` and fill in `SEPOLIA_MNEMONIC` and `SEPOLIA_RPC_UR
 
 The deploy script derives the deployer key from `SEPOLIA_MNEMONIC` (index 0) and self-delegates all tokens, so the deployer satisfies both the proposal threshold and quorum on its own.
 
-### Current deployment (2026-02-11)
+### Current deployment (2026-02-17)
 
 | Contract | Address |
 |---|---|
 | VfiToken | `0xD11496882E083Ce67653eC655d14487030E548aC` |
+| VfiTokenSeller (testnet seller) | `0x93bb81a54d9Dd29b8e8037260aF93770c4F2A64E` |
 | VfiGovernor | `0x753d33e2E61F249c87e6D33c4e04b39731776297` |
 | VfiTimelock | `0xA1349b43D3f233287762897047980bAb3846E23b` |
 | DappRegistry | `0xFb84B57E757649Dff3870F1381C67c9097D0c67f` |
