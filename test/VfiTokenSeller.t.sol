@@ -131,6 +131,21 @@ contract VfiTokenSellerTest is Test {
         assertEq(token.balanceOf(address(this)), ownerBalanceBefore + 100e18);
     }
 
+    function testWithdrawUnsoldTokensRevertsOnZeroRecipient() public {
+        vm.expectRevert(VfiTokenSeller.ZeroAddress.selector);
+        seller.withdrawUnsoldTokens(address(0), 100e18);
+    }
+
+    function testWithdrawUnsoldTokensRevertsOnZeroAmount() public {
+        vm.expectRevert(VfiTokenSeller.ZeroAmount.selector);
+        seller.withdrawUnsoldTokens(address(this), 0);
+    }
+
+    function testWithdrawUnsoldTokensRevertsOnInsufficientTokenBalance() public {
+        uint256 sellerBalance = token.balanceOf(address(seller));
+        vm.expectRevert(VfiTokenSeller.InsufficientTokenBalance.selector);
+        seller.withdrawUnsoldTokens(address(this), sellerBalance + 1);
+    }
     function testConstructorValidation() public {
         vm.expectRevert(VfiTokenSeller.ZeroAddress.selector);
         new VfiTokenSeller(IERC20(address(0)), TOKENS_PER_ETH, address(this));
