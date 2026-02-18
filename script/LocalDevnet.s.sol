@@ -83,7 +83,7 @@ contract LocalDevnet is DeployVibeFi {
             vm.serializeString(json, "securityCouncil2PrivateKey", vm.toString(bytes32(council2Key)));
 
             // Client unified config fields
-            vm.serializeBool(json, "localNetwork", true);
+            vm.serializeBool(json, "testNetwork", true);
             string memory jsonOut =
                 vm.serializeString(json, "rpcUrl", vm.envOr("RPC_URL", string("http://127.0.0.1:8546")));
 

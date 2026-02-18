@@ -36,7 +36,7 @@ contract DeploySepolia is DeployVibeFi {
             vm.serializeAddress(json, "constraintsRegistry", address(dep.constraintsRegistry));
             vm.serializeAddress(json, "proposalRequirements", address(dep.requirements));
             vm.serializeAddress(json, "deployer", deployer);
-            vm.serializeBool(json, "localNetwork", false);
+            vm.serializeBool(json, "testNetwork", true);
             string memory jsonOut = vm.serializeString(json, "rpcUrl", vm.envOr("SEPOLIA_RPC_URL", string("")));
 
             vm.writeJson(jsonOut, outputJson);
