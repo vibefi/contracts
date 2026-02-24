@@ -74,7 +74,7 @@ contract LocalDevnet is DeployVibeFi {
             vm.serializeAddress(json, "voter2", voter2);
             vm.serializeAddress(json, "securityCouncil1", council1);
             vm.serializeAddress(json, "securityCouncil2", council2);
-            vm.serializeUint(json, "studioDappId", 0);
+            vm.serializeUint(json, "studioDappId", 1);
 
             vm.serializeString(json, "developerPrivateKey", vm.toString(bytes32(devKey)));
             vm.serializeString(json, "voter1PrivateKey", vm.toString(bytes32(voter1Key)));
