@@ -250,7 +250,7 @@ $ bun run src/index.ts dapp:list \
 ### 8. Pin IPFS content:
 
 ```shell
-curl -X POST "https://api.4everland.dev/pins" \                                                                          ✔ 
+curl -X POST "https://api.4everland.dev/pins" \ 
   -H "Authorization: Bearer <4EVERLAND_API_KEY>" \
   -H "Content-Type: application/json" \
   --data '{
